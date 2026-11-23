@@ -1,11 +1,29 @@
-// A working news-image-daily entry (Node 22, standard library only): its image is the entry.png beside this file, and
-// the program copies it to /output/entry.png. A starting point, not a winner: replace the image. The gate takes a
-// whole PNG or JPEG of at most 1 MiB and 1024 by 1024 pixels, and the judge sees exactly the bytes copied.
-//
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+#!/usr/bin/env node
+/**
+ * make.fun news-image entry — 23 November 2026
+ *
+ * The deliverable is entry.png: a 1024x1024, 8-tile newspaper front page
+ * recapping the day's world news (COP31 ends without a deal; a drone strike
+ * on a Russian corvette off Benghazi; "El Chapo" Isidro captured; a factory
+ * fire in Banten; an ICE protest in Seattle; Rubio's Ukraine talks; the
+ * Hezbollah chief killed; the Nepali PM visiting Delhi).
+ *
+ * Node 22, standard library only. The script has one responsibility: emit
+ * the exact bytes of the committed entry.png into the output directory.
+ */
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { copyFileSync } from 'node:fs';
-import { join } from 'node:path';
+const here = dirname(fileURLToPath(import.meta.url));
+const source = join(here, 'entry.png');
+const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const target = join(outDir, 'entry.png');
 
-copyFileSync(new URL('./entry.png', import.meta.url), join(process.env.MAKEFUN_OUTPUT_DIR ?? '/output', 'entry.png'));
+// Fresh containers may not have the output dir yet.
+mkdirSync(outDir, { recursive: true });
+
+// Read then write: a deliberate byte-identical round trip (no re-encode).
+writeFileSync(target, readFileSync(source));
+
+console.log(`wrote ${target} (${readFileSync(source).length} bytes)`);
